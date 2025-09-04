@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/sessions/redis"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -81,7 +81,19 @@ func initWebServer() *gin.Engine {
 	login := &middleware.LoginMiddlewareBuilder{}
 	// 存储数据的，也就是你的 userId 存哪里
 	// 刚开始先直接存 cookie
-	store := cookie.NewStore([]byte("secret"))
+	//store := cookie.NewStore([]byte("secret"))
+
+	// 基于内存的实现，第一个参数是 authentication key ,用于身份认证,最好是32 或者 64 位
+	// 第二个参数是 encryption key，加密数据用的
+	//store := memstore.NewStore([]byte("qfqwbxb9i5C9G_fXL:UNfU>Pm0MVyh7?*):E}WUNX2v4ww=^!k9K~j:1fXc!1VrF"),
+	//	[]byte("aNaL?A*dqgo#oE3aPjmU,AE:D1bxNtPtK4P%,kXp.*Auqpd>}c!>iun=M?AhA5XW"))
+
+	store, err := redis.NewStore(16, "tcp", "localhost:6379", "", "",
+		[]byte("qfqwbxb9i5C9G_fXL:UNfU>Pm0MVyh7?*):E}WUNX2v4ww=^!k9K~j:1fXc!1VrF"),
+		[]byte("qfqwbxb9i5C9G_fXL:UNfU>Pm0MVyh7?*):E}WUNX2v4ww=^!k9K~j:1fXc!1VrA"))
+	if err != nil {
+		panic(err)
+	}
 	server.Use(sessions.Sessions("ssid", store), login.CheckLogin())
 	// sessions.Sessions("ssid", store) 是初始化
 	return server

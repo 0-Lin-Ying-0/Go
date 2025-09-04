@@ -1,9 +1,0 @@
-42779167
-go.opentelemetry.io/contrib/propagators/jaeger v1.38.0 h1:nXGeLvT1QtCAhkASkP/ksjkTKZALIaQBIW+JSIw1KIc=
-go.opentelemetry.io/contrib/propagators/jaeger v1.38.0/go.mod h1:oMvOXk78ZR3KEuPMBgp/ThAMDy9ku/eyUVztr+3G6Wo=
-
-go.sum database tree
-42793279
-rNdB8wY3VeEvzzb4WHSJEiytPevmkeEt2A3qIHR0Iug=
-
-— sum.golang.org Az3grqBa6U5t3D/uiJ53HbTvZXNHwg+weZEChRxeihJ3bGeye0IS6nbgjl2rmAP+YCvJfypMPf0oEgoEIISEBagvkQY=

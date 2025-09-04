@@ -1,0 +1,44 @@
+name: Goreleaser
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Install git-chglog
+        run: |
+          wget https://github.com/git-chglog/git-chglog/releases/download/v0.15.4/git-chglog_0.15.4_linux_amd64.tar.gz
+          tar -xzf git-chglog_0.15.4_linux_amd64.tar.gz
+          sudo mv git-chglog /usr/local/bin/
+
+      - name: Generate Changelog
+        run: git-chglog -c .chglog/config.yml -o CHANGELOG.md ${{ github.ref_name }}
+
+      - name: Read Changelog
+        id: read_changelog
+        run: |
+          echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_ENV
+          cat CHANGELOG.md >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{ env.CHANGELOG_CONTENT }}
+          tag: ${{ github.ref_name }}
+          draft: false
+          prerelease: false

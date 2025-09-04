@@ -1,9 +1,0 @@
-42779080
-go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.63.0 h1:5kSIJ0y8ckZZKoDhZHdVtcyjVi6rXyAwyaR8mp4zLbg=
-go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.63.0/go.mod h1:i+fIMHvcSQtsIY82/xgiVWRklrNt/O6QriHLjzGeY+s=
-
-go.sum database tree
-42793104
-GrDGMqG3Nk2bEBDbNV5p0bagOzk5kwjpf8G8RmK1D7w=
-
-— sum.golang.org Az3grgEMh3HKBqE+FhV9eVvfWoLrKi43yENvQKA+2OG4hYarVJXLIMd3rAZ9bcbwtISLmsUBdeazsK7CIWLxR9bhrwg=
