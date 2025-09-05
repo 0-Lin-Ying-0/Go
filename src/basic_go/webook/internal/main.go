@@ -61,10 +61,12 @@ func initWebServer() *gin.Engine {
 		//AllowAllOrigins:  true,
 		//AllowOrigins:     []string{"https://localhost:3000"},
 		//AllowMethods:     []string{"PUT", "PATCH"}, //不用配，允许所有方法就可以
-		AllowHeaders: []string{"Content-Type"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
+		// 这个是允许前端访问你的后端响应中带的头部
+		ExposeHeaders: []string{"x-jwt-token"},
 		//AllowHeaders:     []string{"content-type"},
 
-		ExposeHeaders:    []string{"Content-Length"},
+		//ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
 			//if strings.Contains(origin, "localhost") {
@@ -78,6 +80,18 @@ func initWebServer() *gin.Engine {
 		println("这是我的middleware")
 	})
 
+	useJWT(server)
+	//useSession(server)
+
+	return server
+}
+
+func useJWT(server *gin.Engine) {
+	login := middleware.LoginJWTMiddlewareBuilder{}
+	server.Use(login.CheckLogin())
+}
+
+func useSession(server *gin.Engine) {
 	login := &middleware.LoginMiddlewareBuilder{}
 	// 存储数据的，也就是你的 userId 存哪里
 	// 刚开始先直接存 cookie
@@ -96,5 +110,4 @@ func initWebServer() *gin.Engine {
 	}
 	server.Use(sessions.Sessions("ssid", store), login.CheckLogin())
 	// sessions.Sessions("ssid", store) 是初始化
-	return server
 }
