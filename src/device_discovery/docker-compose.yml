@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: dev-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: device_discovery
+      TZ: Asia/Taipei
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    build: .
+    cap_add:
+      -NET_RAW
+    container_name: dev-discovery
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: device_discovery
+      TZ: Asia/Taipei
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:

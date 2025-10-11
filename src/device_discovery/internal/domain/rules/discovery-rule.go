@@ -11,7 +11,7 @@ type DiscoveryRule struct {
 	Enabled          bool
 	Ranges           []IPRange
 	ProtocolOrder    []domain.ScanProtocol
-	TemplateRules    []TemplateBindRules
+	TemplateRules    []TemplateBindRule
 	Frequency        time.Duration
 	OfflineThreshold time.Duration
 }

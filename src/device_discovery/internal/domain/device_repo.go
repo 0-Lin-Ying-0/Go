@@ -1,6 +1,6 @@
 package domain
 
-type DiscoveryRepository interface {
+type DeviceRepository interface {
 	Save(d *Device) error
 	FindByID(id int64) (*Device, error)
 	FindByIP(ip string) (*Device, error)

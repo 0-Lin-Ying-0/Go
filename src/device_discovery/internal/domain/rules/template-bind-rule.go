@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type TemplateBindRules struct {
+type TemplateBindRule struct {
 	ID         int64
 	VendorCond string
 	TypeCond   string
@@ -13,7 +13,7 @@ type TemplateBindRules struct {
 	TemplateID int64
 }
 
-func (r TemplateBindRules) Matches(d *domain.Device) bool {
+func (r TemplateBindRule) Matches(d *domain.Device) bool {
 	if d == nil {
 		return false
 	}

@@ -11,14 +11,14 @@ import (
 )
 
 type DiscoveryService struct {
-	repo  domain.DiscoveryRepository
-	icmp  ICMPScannerPort
+	repo  domain.DeviceRepository
+	icmp  ICMPScanner
 	ident services.SimpleIS
 }
 
 func NewDiscoveryService(
-	repo domain.DiscoveryRepository,
-	icmp ICMPScannerPort,
+	repo domain.DeviceRepository,
+	icmp ICMPScanner,
 	ident services.SimpleIS,
 ) *DiscoveryService {
 	return &DiscoveryService{
@@ -37,7 +37,7 @@ func (s *DiscoveryService) DiscoverByRule(rule rules.DiscoveryRule) ([]DeviceDTO
 
 	ips := expandRanges(rule.Ranges)
 	if len(ips) == 0 {
-		return nil, fmt.Errorf("rule [%s] is disabled", rule.Name)
+		return nil, fmt.Errorf("rule [%s] has no target IPs", rule.Name)
 	}
 
 	// ICMP 扫描
