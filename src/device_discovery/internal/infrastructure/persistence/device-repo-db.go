@@ -1,7 +1,6 @@
 package persistence
 
 import (
-	"context"
 	"device_discovery/internal/domain"
 	"errors"
 
@@ -18,7 +17,7 @@ func NewDeviceRepoDB(db *gorm.DB) *DeviceRepoDB {
 	}
 }
 
-func (r *DeviceRepoDB) Save(ctx context.Context, d *domain.Device) error {
+func (r *DeviceRepoDB) Save(d *domain.Device) error {
 	if d == nil {
 		return errors.New("device is nil")
 	}

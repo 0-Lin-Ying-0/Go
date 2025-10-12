@@ -19,5 +19,5 @@ type ICMPResult struct {
 
 type ICMPScanner interface {
 	Ping(ctx context.Context, ip string, timeout time.Duration) (ICMPResult, error)
-	Sweep(ctx context.Context, ip []string, timeout time.Duration, maxConcurrency int) ([]ICMPResult, error)
+	Sweep(ctx context.Context, ips []string, timeout time.Duration, maxConcurrency int) ([]ICMPResult, error)
 }

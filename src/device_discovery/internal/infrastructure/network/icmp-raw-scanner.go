@@ -99,7 +99,7 @@ func (s *RawICMPScanner) Ping(ctx context.Context, ip string, timeout time.Durat
 }
 
 // Sweep 并发扫描多个 IP 列表
-func (s *RawICMPScanner) Sweep(ctx context.Context, ips []string, concurrency int, timeout time.Duration) ([]application.ICMPResult, error) {
+func (s *RawICMPScanner) Sweep(ctx context.Context, ips []string, timeout time.Duration, concurrency int) ([]application.ICMPResult, error) {
 	var wg sync.WaitGroup
 	resultsCh := make(chan application.ICMPResult, len(ips))
 	// 并发信号量

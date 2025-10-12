@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"device_discovery/internal/domain"
 	"device_discovery/internal/domain/rules"
 	"device_discovery/internal/domain/services"
@@ -13,13 +14,13 @@ import (
 type DiscoveryService struct {
 	repo  domain.DeviceRepository
 	icmp  ICMPScanner
-	ident services.SimpleIS
+	ident services.DIS
 }
 
 func NewDiscoveryService(
 	repo domain.DeviceRepository,
 	icmp ICMPScanner,
-	ident services.SimpleIS,
+	ident services.DIS,
 ) *DiscoveryService {
 	return &DiscoveryService{
 		repo:  repo,
@@ -29,7 +30,8 @@ func NewDiscoveryService(
 }
 
 // DiscoverByRule :按发现规则执行一次发现
-func (s *DiscoveryService) DiscoverByRule(rule rules.DiscoveryRule) ([]DeviceDTO, error) {
+func (s *DiscoveryService) DiscoverByRule(ctx context.Context, rule rules.DiscoveryRule, hostTimeout time.Duration, concurrency int) ([]DeviceDTO, error) {
+
 	// 展开规则的 IP 范围
 	if !rule.Enabled {
 		return nil, fmt.Errorf("rule [%s] is disabled", rule.Name)
@@ -41,7 +43,7 @@ func (s *DiscoveryService) DiscoverByRule(rule rules.DiscoveryRule) ([]DeviceDTO
 	}
 
 	// ICMP 扫描
-	icmpResult, err := s.icmp.Sweep(ips)
+	icmpResult, err := s.icmp.Sweep(ctx, ips, hostTimeout, concurrency)
 	if err != nil {
 		return nil, fmt.Errorf("icmp sweep error:%w", err)
 	}
