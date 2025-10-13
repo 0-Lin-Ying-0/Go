@@ -10,12 +10,12 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./script/mysql/:/docker-entrypoint-initdb.d/
 
   app:
     build: .
     cap_add:
-      -NET_RAW
+      - NET_RAW
     container_name: dev-discovery
     depends_on:
       - mysql
