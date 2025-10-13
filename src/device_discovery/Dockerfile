@@ -1,21 +1,15 @@
-# ============ Builder ============
-FROM golang:1.22 AS builder
+# syntax=docker/dockerfile:1
 
-WORKDIR /app
+FROM registry.cn-hangzhou.aliyuncs.com/library/golang:1.22-alpine AS builder
+ENV GOPROXY=https://goproxy.cn,direct GO111MODULE=on CGO_ENABLED=0 GOOS=linux
+WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
-
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /bin/discovery ./cmd/discovery
+RUN go build -trimpath -ldflags="-s -w" -o /out/discovery ./cmd/discovery
 
-# ============ Runner ============
-FROM debian:stable-slim
-
-# 安装 ping 工具（ICMPScanner 需要）
-RUN apt-get update && apt-get install -y --no-install-recommends iputils-ping ca-certificates && rm -rf /var/lib/apt/lists/*
-
+FROM registry.cn-hangzhou.aliyuncs.com/library/alpine:3.20
 WORKDIR /app
-COPY --from=builder /bin/discovery /app/discovery
-
+COPY --from=builder /out/discovery /app/discovery
 EXPOSE 8080
 ENTRYPOINT ["/app/discovery"]

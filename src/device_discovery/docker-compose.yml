@@ -1,35 +1,38 @@
-version: "3.9"
 services:
   mysql:
     image: mysql:8.0
-    restart: always
-    command: --default-authentication-plugin=mysql_native_password
     container_name: dev-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: device_discovery
-      TZ: Asia/Taipei
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=device_discovery
+      - MYSQL_ROOT_HOST=%          # 放开 root 远程（方便 GoLand 连接）
     ports:
       - "3306:3306"
     volumes:
-      - ./script/mysql/:/docker-entrypoint-initdb.d/
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
 
   app:
     build: .
-    cap_add:
-      - NET_RAW
     container_name: dev-discovery
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
-      DB_HOST: mysql
-      DB_PORT: "3306"
-      DB_USER: root
-      DB_PASS: root
-      DB_NAME: device_discovery
-      TZ: Asia/Taipei
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASS=root
+      - DB_NAME=device_discovery
     ports:
       - "8080:8080"
+    cap_add:
+      - NET_RAW
 
 volumes:
   mysql_data:
