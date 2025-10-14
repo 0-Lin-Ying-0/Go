@@ -9,7 +9,7 @@ import (
 )
 
 type DeviceModel struct {
-	DeviceId        int64      `gorm:"primary;autoIncrement"`
+	DeviceId        int64      `gorm:"primaryKey;autoIncrement"`
 	IpAddress       string     `gorm:"size:64;uniqueIndex;not null"`
 	HostName        string     `gorm:"size:255"`
 	DeviceType      string     `gorm:"size:128"`
