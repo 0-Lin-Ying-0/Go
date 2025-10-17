@@ -99,13 +99,20 @@ func (s *RawICMPScanner) Ping(ctx context.Context, ip string, timeout time.Durat
 	if err != nil {
 		return result, fmt.Errorf("解析 ICMP 响应失败：%w", err)
 	}
+
+	// 先安全取 TTL
+	ttl := 0
+	if cm != nil {
+		ttl = cm.TTL
+	}
+
 	// 8)记录结果
 	if resp.Type == ipv4.ICMPTypeEchoReply {
 		if e, ok := resp.Body.(*icmp.Echo); ok {
 			if e.ID == sentID && e.Seq == sentSeq {
 				result.Reachable = true
 				result.RTT = time.Since(start)
-				result.TTL = cm.TTL
+				result.TTL = ttl
 			}
 		}
 	}
