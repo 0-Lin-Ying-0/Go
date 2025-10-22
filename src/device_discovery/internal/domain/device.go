@@ -43,7 +43,7 @@ func NewDevice(ipAddress string) *Device {
 	}
 }
 
-// NewD 用于判断“是否为新设备”（尚未持久化）。
+// NewD 用于判断“是否为新设备”（尚未持久化）
 // 领域内常用来决定“新增还是更新”，或是否触发“新设备工作流”。
 func (d *Device) NewD() bool {
 	return d.DeviceId == 0

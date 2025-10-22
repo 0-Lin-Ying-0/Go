@@ -13,6 +13,7 @@ type TemplateBindRule struct {
 	TemplateID int64
 }
 
+// 省略具体实现：满足所有启用的条件就命中
 func (r TemplateBindRule) Matches(d *domain.Device) bool {
 	if d == nil {
 		return false

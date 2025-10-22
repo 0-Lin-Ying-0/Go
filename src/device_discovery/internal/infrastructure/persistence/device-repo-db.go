@@ -54,16 +54,16 @@ func (r *DeviceRepoDB) Save(d *domain.Device) error {
 		return err
 	}
 	// IP 定位更新
-	return r.db.Model(&DeviceModel{}).Where("ip = ?", exist.IpAddress).Updates(m).Error
+	return r.db.Model(&DeviceModel{}).Where("ip_address = ?", exist.IpAddress).Updates(m).Error
 }
 
 func (r *DeviceRepoDB) FindByIP(ip string) (*domain.Device, error) {
 	var m DeviceModel
 	err := r.db.Where("ip_address = ?", ip).First(&m).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return toDomain(&m)
