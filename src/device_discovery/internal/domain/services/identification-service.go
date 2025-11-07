@@ -91,7 +91,7 @@ func (s *SimpleIS) Identify(d *domain.Device, in IdentificationInput) {
 
 	// 推断
 
-	// 基于 ICMP TTL 的非常粗略推断（仅在 DeviceType/OsVersion 为空时尝试）
+	// 基于 ICMP TTL 的非常粗略推断（仅在 DeviceType/OSVersion 为空时尝试）
 	//    - TTL≥200：很多网络设备（如 Cisco/Juniper）默认 TTL 高（255），可倾向“NetworkDevice”
 	//    - 100≤TTL<200：常见 Windows 默认 TTL≈128
 	//    - 40≤TTL≤80：常见 Linux/Unix 默认 TTL≈64
@@ -106,7 +106,7 @@ func (s *SimpleIS) Identify(d *domain.Device, in IdentificationInput) {
 				d.SetDeviceType("Server")
 			}
 		}
-		if d.OsVersion == "" {
+		if d.OSVersion == "" {
 			if in.ICMPTTL >= 100 && in.ICMPTTL < 200 {
 				d.SetOsVersion("Windows")
 			} else if in.ICMPTTL >= 40 && in.ICMPTTL < 80 {
@@ -129,7 +129,7 @@ func (s *SimpleIS) Identify(d *domain.Device, in IdentificationInput) {
 	}
 
 	// OSVersion：从 banner 再补一把（SNMP/SSH 更精确的可后续替换）
-	if d.OsVersion == "" && in.Banner != "" {
+	if d.OSVersion == "" && in.Banner != "" {
 		low := strings.ToLower(in.Banner)
 		switch {
 		case strings.Contains(low, "ios"):

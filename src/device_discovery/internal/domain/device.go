@@ -21,12 +21,12 @@ const (
 )
 
 type Device struct {
-	DeviceId        int64
-	IpAddress       string
+	DeviceID        int64
+	IPAddress       string
 	HostName        string
 	DeviceType      string
 	Vendor          string
-	OsVersion       string
+	OSVersion       string
 	Status          DeviceStatus
 	DiscoveryTime   time.Time
 	LastSeen        time.Time
@@ -36,7 +36,7 @@ type Device struct {
 
 func NewDevice(ipAddress string) *Device {
 	return &Device{
-		IpAddress:     ipAddress,
+		IPAddress:     ipAddress,
 		Status:        StatusUnknown,
 		DiscoveryTime: time.Now(),
 		// 其他字段留空，待后续识别/探测补全
@@ -46,7 +46,7 @@ func NewDevice(ipAddress string) *Device {
 // NewD 用于判断“是否为新设备”（尚未持久化）
 // 领域内常用来决定“新增还是更新”，或是否触发“新设备工作流”。
 func (d *Device) NewD() bool {
-	return d.DeviceId == 0
+	return d.DeviceID == 0
 }
 
 // SupportsPrl 判断设备是否“已知支持”某协议
@@ -102,7 +102,7 @@ func (d *Device) SetVendor(v string) {
 }
 
 func (d *Device) SetOsVersion(ov string) {
-	d.OsVersion = ov
+	d.OSVersion = ov
 }
 
 func (d *Device) BindTemplateId(id int64) {

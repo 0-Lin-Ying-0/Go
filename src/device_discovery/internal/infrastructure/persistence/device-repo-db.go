@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type DeviceRepoDB struct {
@@ -22,39 +23,56 @@ func (r *DeviceRepoDB) Save(d *domain.Device) error {
 		return errors.New("device is nil")
 	}
 	// 查 IP
-	exist, err := r.FindByIP(d.IpAddress)
+	exist, err := r.FindByIP(d.IPAddress)
 	if err != nil {
 		return err
 	}
-	if exist == nil {
-		// 新增
-		m, err := toModel(d)
-		if err != nil {
-			return err
-		}
-		if err := r.db.Create(m).Error; err != nil {
-			return err
-		}
-		d.DeviceId = m.DeviceId
-		return nil
+	// 先假设要写入的数据来自当前扫描结果
+	target := d
+	// 存在旧记录则在内存中先合并字段，随后统一走 toModel(target)
+	if exist != nil {
+		// 更新：把领域对象的字段覆盖到已存在的记录
+		exist.HostName = d.HostName
+		exist.DeviceType = d.DeviceType
+		exist.Vendor = d.Vendor
+		exist.OSVersion = d.OSVersion
+		exist.Status = d.Status
+		exist.DiscoveryTime = d.DiscoveryTime
+		exist.LastSeen = d.LastSeen
+		exist.ProtocolSupport = d.ProtocolSupport
+		exist.TemplateId = d.TemplateId
+		target = exist
 	}
-	// 更新：把领域对象的字段覆盖到已存在的记录
-	exist.HostName = d.HostName
-	exist.DeviceType = d.DeviceType
-	exist.Vendor = d.Vendor
-	exist.OsVersion = d.OsVersion
-	exist.Status = d.Status
-	exist.DiscoveryTime = d.DiscoveryTime
-	exist.LastSeen = d.LastSeen
-	exist.ProtocolSupport = d.ProtocolSupport
-	exist.TemplateId = d.TemplateId
+	m, err := toModel(target)
 
-	m, err := toModel(exist)
 	if err != nil {
 		return err
 	}
 	// IP 定位更新
-	return r.db.Model(&DeviceModel{}).Where("ip_address = ?", exist.IpAddress).Updates(m).Error
+	if err := r.db.Clauses(clause.OnConflict{
+		// 声明冲突目标 Columns: ip_address
+		Columns: []clause.Column{{Name: "ip_address"}},
+		// 并在冲突时更新指定列
+		DoUpdates: clause.AssignmentColumns([]string{ //AssignmentColumns 明确列清单，确保零值也更新
+			"host_name",
+			"device_type",
+			"vendor",
+			"os_version",
+			"status",
+			"discovery_time",
+			"last_seen",
+			"protocol_support",
+			"template_id",
+			"updated_at",
+		}),
+	}).Create(&m).Error; err != nil {
+		return err
+	}
+	if d.DeviceID == 0 {
+		// 把数据库主键回写到领域对象，方便后续链路使用
+		d.DeviceID = m.DeviceID
+	}
+	return nil
 }
 
 func (r *DeviceRepoDB) FindByIP(ip string) (*domain.Device, error) {

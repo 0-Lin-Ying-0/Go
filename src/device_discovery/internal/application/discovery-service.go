@@ -2,12 +2,12 @@ package application
 
 import (
 	"context"
+	"device_discovery/internal/application/targets"
 	"device_discovery/internal/domain"
 	"device_discovery/internal/domain/rules"
 	"device_discovery/internal/domain/services"
 	"errors"
 	"fmt"
-	"net"
 	"time"
 )
 
@@ -29,7 +29,7 @@ func NewDiscoveryService(
 	}
 }
 
-// DiscoverByRule :按发现规则执行一次发现
+// DiscoverByRule :校验规则 → 调用 targets.ExpandRanges → 把 ips 丢给 Discover
 func (s *DiscoveryService) DiscoverByRule(ctx context.Context, rule rules.DiscoveryRule, hostTimeout time.Duration, concurrency int) ([]DeviceDTO, error) {
 
 	// 展开规则的 IP 范围
@@ -37,9 +37,15 @@ func (s *DiscoveryService) DiscoverByRule(ctx context.Context, rule rules.Discov
 		return nil, fmt.Errorf("rule [%s] is disabled", rule.Name)
 	}
 
-	ips := expandRanges(rule.Ranges)
+	// 把规则里的 []IPRange 展开成 []string IP 列表
+	ips := targets.ExpandRanges(rule.Ranges)
+	return s.Discover(ctx, &rule, ips, hostTimeout, concurrency)
+}
+
+// Discover 真正的发现逻辑集中在这里
+func (s *DiscoveryService) Discover(ctx context.Context, rule *rules.DiscoveryRule, ips []string, hostTimeout time.Duration, concurrency int) ([]DeviceDTO, error) {
 	if len(ips) == 0 {
-		return nil, fmt.Errorf("rule [%s] has no target IPs", rule.Name)
+		return nil, fmt.Errorf("no target IPs provided")
 	}
 
 	// ICMP 扫描
@@ -70,8 +76,10 @@ func (s *DiscoveryService) DiscoverByRule(ctx context.Context, rule rules.Discov
 		})
 
 		// 绑定
-		if tplID, ok := rule.MatchTemplate(dev); ok {
-			dev.BindTemplateId(tplID)
+		if rule != nil {
+			if tplID, ok := rule.MatchTemplate(dev); ok {
+				dev.BindTemplateId(tplID)
+			}
 		}
 
 		// 保存
@@ -110,51 +118,4 @@ func (s *DiscoveryService) GetDeviceByIP(ip string) (DeviceDTO, error) {
 	dto := FromDevice(dev)
 	return dto, nil
 
-}
-
-// 把"多个 IP 范围的切片"展开成"所有具体 IP 的字符串切片","把多个范围拼在一起"
-func expandRanges(rgs []rules.IPRange) []string {
-	var out []string
-	for _, r := range rgs {
-		out = append(out, expRange(r)...)
-	}
-	return out
-}
-
-// “把一个范围展开成所有 IPv4”
-func expRange(rg rules.IPRange) []string {
-	start := net.ParseIP(rg.StartIP).To4()
-	end := net.ParseIP(rg.EndIP).To4()
-	if start == nil || end == nil {
-		return nil
-	}
-	cur := make(net.IP, 4)
-	copy(cur, start)
-
-	var ips []string
-	for ; !ipGT(cur, end); incIPv4(cur) {
-		ips = append(ips, cur.String())
-	}
-	return ips
-}
-
-func incIPv4(ip net.IP) {
-	for i := 3; i >= 0; i-- {
-		ip[i]++
-		if ip[i] != 0 {
-			break
-		}
-	}
-}
-
-func ipGT(a, b net.IP) bool {
-	for i := 0; i < 4; i++ {
-		if a[i] > b[i] {
-			return true
-		}
-		if a[i] < b[i] {
-			return false
-		}
-	}
-	return false
 }

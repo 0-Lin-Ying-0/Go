@@ -9,17 +9,17 @@ import (
 )
 
 type DeviceModel struct {
-	DeviceId        int64      `gorm:"primaryKey;autoIncrement"`
-	IpAddress       string     `gorm:"size:64;uniqueIndex;not null"`
+	DeviceID        int64      `gorm:"primaryKey;autoIncrement"`
+	IPAddress       string     `gorm:"size:64;uniqueIndex;not null"`
 	HostName        string     `gorm:"size:255"`
 	DeviceType      string     `gorm:"size:128"`
 	Vendor          string     `gorm:"size:128"`
-	OsVersion       string     `gorm:"size:128"`
+	OSVersion       string     `gorm:"size:128"`
 	Status          string     `gorm:"size:32;index"`
 	DiscoveryTime   time.Time  `gorm:"type:datetime;index"`
 	LastSeen        *time.Time `gorm:"type:datetime"`
 	ProtocolSupport string     `gorm:"type:text"`
-	TemplateId      int64      `gorm:"index"`
+	TemplateID      int64      `gorm:"index"`
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	DeletedAt       gorm.DeletedAt `gorm:"index"`
@@ -32,16 +32,16 @@ func toModel(d *domain.Device) (*DeviceModel, error) {
 		return nil, err
 	}
 	m := &DeviceModel{
-		DeviceId:        d.DeviceId,
-		IpAddress:       d.IpAddress,
+		DeviceID:        d.DeviceID,
+		IPAddress:       d.IPAddress,
 		HostName:        d.HostName,
 		DeviceType:      d.DeviceType,
 		Vendor:          d.Vendor,
-		OsVersion:       d.OsVersion,
+		OSVersion:       d.OSVersion,
 		Status:          string(d.Status),
 		DiscoveryTime:   d.DiscoveryTime,
 		ProtocolSupport: string(bs),
-		TemplateId:      d.TemplateId,
+		TemplateID:      d.TemplateId,
 	}
 	// LastSeen 允许为空
 	if !d.LastSeen.IsZero() {
@@ -62,16 +62,16 @@ func toDomain(m *DeviceModel) (*domain.Device, error) {
 		lastSeen = *m.LastSeen
 	}
 	return &domain.Device{
-		DeviceId:        m.DeviceId,
-		IpAddress:       m.IpAddress,
+		DeviceID:        m.DeviceID,
+		IPAddress:       m.IPAddress,
 		HostName:        m.HostName,
 		DeviceType:      m.DeviceType,
 		Vendor:          m.Vendor,
-		OsVersion:       m.OsVersion,
+		OSVersion:       m.OSVersion,
 		Status:          domain.DeviceStatus(m.Status),
 		DiscoveryTime:   m.DiscoveryTime,
 		LastSeen:        lastSeen,
 		ProtocolSupport: protos,
-		TemplateId:      m.TemplateId,
+		TemplateId:      m.TemplateID,
 	}, nil
 }

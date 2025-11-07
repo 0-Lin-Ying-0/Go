@@ -27,7 +27,7 @@ func (r TemplateBindRule) Matches(d *domain.Device) bool {
 		return false
 	}
 	if r.OsCond != "" {
-		os := strings.ToLower(strings.TrimSpace(d.OsVersion))
+		os := strings.ToLower(strings.TrimSpace(d.OSVersion))
 		if os == "" || !strings.Contains(os, strings.ToLower(strings.TrimSpace(r.OsCond))) {
 			return false
 		}

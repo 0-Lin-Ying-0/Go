@@ -25,12 +25,12 @@ func FromDevice(d *domain.Device) DeviceDTO {
 		protos = append(protos, string(p))
 	}
 	return DeviceDTO{
-		DeviceId:        d.DeviceId,
-		IpAddress:       d.IpAddress,
+		DeviceId:        d.DeviceID,
+		IpAddress:       d.IPAddress,
 		HostName:        d.HostName,
 		DeviceType:      d.DeviceType,
 		Vendor:          d.Vendor,
-		OsVersion:       d.OsVersion,
+		OsVersion:       d.OSVersion,
 		Status:          string(d.Status),
 		DiscoveryTime:   d.DiscoveryTime,
 		LastSeen:        d.LastSeen,
