@@ -20,7 +20,7 @@ import (
 
 // 真正的调度进程
 /*
-启动调度器（gocron）→ 从 DB 读取启用的 discovery_schedules / discovery_rules → 按计划入队 asynq 任务（Redis）→ 由独立的 Worker去执行扫描
+启动调度器（asynq PeriodicTaskManager）→ 从 DB 读取启用的 discovery_schedules / discovery_rules → 按计划入队 asynq 任务（Redis）→ 由独立的 Worker去执行扫描
 → 本进程常驻，监听信号优雅退出。
 */
 
@@ -42,11 +42,8 @@ func main() {
 	scheduleRepo := repo.NewScheduleRepository(db)
 	jobRunRepo := repo.NewJobRunRepository(db)
 
-	// 构造基于 gocron 的调度器
-	sched, err := scheduler.NewGocronScheduler(scheduleRepo, jobRunRepo, queueClient, slog.Default())
-	if err != nil {
-		log.Fatalf("create scheduler failed:%v", err)
-	}
+	// 构造基于 asynq PeriodicTaskManager 的调度器
+	sched := scheduler.NewAsynqScheduler(cfg.redisAddr, scheduleRepo, jobRunRepo, queueClient, slog.Default())
 
 	// 为调度器提供可取消的上下文
 	ctx, cancel := context.WithCancel(context.Background())

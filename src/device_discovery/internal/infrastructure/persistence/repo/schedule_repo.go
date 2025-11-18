@@ -24,7 +24,7 @@ func NewScheduleRepository(db *gorm.DB) *ScheduleRepository {
 // ListEnabled 从数据库读出所有“启用中的调度计划”（enabled = true），供调度器启动或定期刷新时加载到内存，随后注册成定时任务
 func (r *ScheduleRepository) ListEnabled(ctx context.Context) ([]persistence.DiscoveryScheduleModel, error) {
 	var rows []persistence.DiscoveryScheduleModel
-	if err := r.db.WithContext(ctx).Where("enabled=?", true).Find(&rows).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("enable=?", true).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	return rows, nil

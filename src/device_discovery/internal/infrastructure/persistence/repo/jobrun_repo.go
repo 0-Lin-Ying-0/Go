@@ -57,6 +57,7 @@ func (r *JobRunRepository) MarkSucceeded(ctx context.Context, runID string, fini
 	})
 }
 
+// MarkFailed 把一次发现任务（JobRun）的运行状态标记为“失败”，同时记录结束时间与错误信息
 func (r *JobRunRepository) MarkFailed(ctx context.Context, runID string, finishedAt time.Time, errMsg string) error {
 	return r.update(ctx, runID, map[string]any{
 		"status":      persistence.StatusFailed,
@@ -83,6 +84,19 @@ func (r *JobRunRepository) CountForSchedule(ctx context.Context, scheduleID int6
 		return 0, err
 	}
 	return count, nil
+}
+
+// HasActiveRun 检查某个调度是否还有未完成的运行(enqueued / running)
+func (r *JobRunRepository) HasActiveRun(ctx context.Context, scheduleID int64) (bool, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&persistence.JobRunModel{}).
+		Where("schedule_id=? AND status IN ?",
+			scheduleID,
+			[]string{persistence.StatusEnqueued, persistence.StatusRunning},
+		).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 // 仓储层里通用更新
