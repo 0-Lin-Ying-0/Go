@@ -50,10 +50,10 @@ func (r *JobRunRepository) MarkStarted(ctx context.Context, runID string, starte
 func (r *JobRunRepository) MarkSucceeded(ctx context.Context, runID string, finishedAt time.Time, took time.Duration, discovered int) error {
 	tooks := took.Milliseconds()
 	return r.update(ctx, runID, map[string]any{
-		"status":      persistence.StatusSucceeded,
-		"finished_at": finishedAt,
-		"took_ms":     tooks,
-		"discovered":  discovered,
+		"status":         persistence.StatusSucceeded,
+		"finished_at":    finishedAt,
+		"took_ms":        tooks,
+		"discovered_cnt": discovered,
 	})
 }
 

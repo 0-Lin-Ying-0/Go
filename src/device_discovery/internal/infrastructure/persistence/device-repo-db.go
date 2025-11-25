@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// -- 有就更新，没有就插入 --
+
 type DeviceRepoDB struct {
 	db *gorm.DB
 }
