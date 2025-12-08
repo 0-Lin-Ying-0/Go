@@ -233,7 +233,8 @@ func mustOpenDB(cfg config) *gorm.DB {
 	// - charset=utf8mb4        ：支持 emoji 等多字节字符
 	// - parseTime=true         ：把 MySQL 的 datetime 映射为 Go 的 time.Time
 	// - loc=Local              ：使用本地时区处理时间
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", cfg.dbUser, cfg.dbPass, cfg.dbHost, cfg.dbPort, cfg.dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+		cfg.dbUser, cfg.dbPass, cfg.dbHost, cfg.dbPort, cfg.dbName)
 	// gorm.Open 会返回一个 *gorm.DB 实例，后续所有数据库操作都基于它
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {

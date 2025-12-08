@@ -30,7 +30,11 @@ func main() {
 
 	// 连接 MySQL
 	db := mustOpenDB(cfg)
-	if err := db.AutoMigrate(&persistence.DeviceModel{}, &persistence.DiscoveryScheduleModel{}, &persistence.JobRunModel{}, &persistence.DiscoveryRuleModel{}); err != nil {
+	if err := db.AutoMigrate(&persistence.DeviceModel{},
+		&persistence.DiscoveryScheduleModel{},
+		&persistence.JobRunModel{},
+		&persistence.DiscoveryRuleModel{},
+	); err != nil {
 		log.Fatalf("AutoMigrate error :%v", err)
 	}
 
