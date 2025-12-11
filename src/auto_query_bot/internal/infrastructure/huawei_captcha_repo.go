@@ -4,8 +4,11 @@ import (
 	"auto-query-bot/internal/domain"
 	"bytes"
 	"fmt"
+	"image"
+	"image/color"
 	"io"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -58,13 +61,13 @@ func (r *HuaweiCaptchaRepo) Fetch() (*domain.Captcha, error) {
 func (r *HuaweiCaptchaRepo) Solve(c *domain.Captcha) (string, error) {
 	//// TODO: 先不接 Tesseract，直接让用户手动输入
 	//
-	//fmt.Printf("已获取验证码图片，长度: %d 字节\n", len(c.ImageBytes))
+	fmt.Printf("已获取验证码图片，长度: %d 字节\n", len(c.ImageBytes))
 	//fmt.Println("暂不使用 OCR，请手动在浏览器打开图片并输入验证码：")
-	//
-	//// 把图片写成文件，手动打开
-	//if err := os.WriteFile("manual_captcha.jpg", c.ImageBytes, 0644); err != nil {
-	//	return "", fmt.Errorf("写验证码图片失败: %w", err)
-	//}
+
+	// 把图片写成文件，手动打开
+	if err := os.WriteFile("manual_captcha.jpg", c.ImageBytes, 0644); err != nil {
+		return "", fmt.Errorf("写验证码图片失败: %w", err)
+	}
 	//
 	//fmt.Println("图片已保存为 manual_captcha.jpg，请打开并输入验证码：")
 	//
@@ -81,17 +84,18 @@ func (r *HuaweiCaptchaRepo) Solve(c *domain.Captcha) (string, error) {
 	}
 
 	// 2. 图像预处理 (去噪)
-	img = imaging.Resize(img, 0, 150, imaging.Box)  // 放大
-	inverted := imaging.Invert(img)                 // 反转颜色
-	gray := imaging.Grayscale(inverted)             // 灰度化
-	Blur := imaging.Blur(gray, 1.5)                 // 高斯模糊
-	processed := imaging.AdjustContrast(Blur, 60)   // 提高对比度
-	processed = imaging.AdjustGamma(processed, 0.5) // 降低Gamma值(变暗)，让浅色字显出来
+	img = imaging.Resize(img, 0, 150, imaging.Lanczos) // 放大
+	//inverted := imaging.Invert(img)                       // 反转颜色
+	gray := imaging.Grayscale(img)   // 灰度化
+	Blur := imaging.Blur(gray, 0.8)  // 高斯模糊
+	processed := binarize(Blur, 180) // 简单二值化 threshold 可以微调 160~200
+	//processed := imaging.AdjustContrast(Blur, 60)   // 提高对比度
+	//processed = imaging.AdjustGamma(processed, 0.5) // 降低Gamma值(变暗)，让浅色字显出来
 
 	// 3. 临时保存给 OCR 读取
 	tempFile := "temp_ocr_process.png"
-	err = imaging.Save(processed, tempFile)
-	if err != nil {
+
+	if err := imaging.Save(processed, tempFile); err != nil {
 		return "", fmt.Errorf("图片保存失败：%v", err)
 	}
 	//defer os.Remove(tempFile) // 用完删除
@@ -108,8 +112,13 @@ func (r *HuaweiCaptchaRepo) Solve(c *domain.Captcha) (string, error) {
 	//return text, err
 
 	// 4. 调用系统安装的 Tesseract
-	// 只要你 CMD 里能敲 tesseract，这行代码就能跑
-	cmd := exec.Command("tesseract", tempFile, "stdout", "--psm", "7", "-c", "tessedit_char_whitelist=0123456789")
+	// 只要 CMD 里能敲 tesseract，这行代码就能跑
+	cmd := exec.Command("tesseract", tempFile, "stdout",
+		"--psm", "7",
+		"--oem", "1", // LSTM OCR Engine
+		"-c", "tessedit_char_whitelist=0123456789",
+		"-c", "classify_bln_numeric_mode=1",
+	)
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -121,11 +130,36 @@ func (r *HuaweiCaptchaRepo) Solve(c *domain.Captcha) (string, error) {
 
 	// 5. 清洗结果
 	result := strings.TrimSpace(out.String())
-	validResult := ""
-	for _, char := range result {
-		if char >= '0' && char <= '9' {
-			validResult += string(char)
+	// 只保留 0-9
+	digits := make([]int32, 0, len(result))
+	for _, r := range result {
+		if r >= '0' && r <= '9' {
+			digits = append(digits, r)
 		}
 	}
-	return validResult, nil
+
+	code := string(digits)
+
+	//如果识别出了超过/低于 4 位，
+	if len(code) != 4 {
+		return "", fmt.Errorf("验证码长度错误: 期望 4 位，实际识别为 %d 位", len(code))
+	}
+	return code, nil
+}
+
+func binarize(src image.Image, threshold uint8) *image.Gray {
+	b := src.Bounds()
+	dst := image.NewGray(b)
+
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			c := color.GrayModel.Convert(src.At(x, y)).(color.Gray)
+			if c.Y > threshold {
+				dst.SetGray(x, y, color.Gray{Y: 255}) // 亮的当背景(白)
+			} else {
+				dst.SetGray(x, y, color.Gray{Y: 0}) // 暗的当前景(黑)
+			}
+		}
+	}
+	return dst
 }
