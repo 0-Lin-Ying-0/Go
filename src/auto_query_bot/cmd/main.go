@@ -30,14 +30,14 @@ func main() {
 	outputFile := "results.csv"
 
 	// 写入表头
-	_ = fileHandler.WriteRecord(outputFile, []string{"序列号(SN)", "验证码", "状态", "原始信息", "时间"})
+	_ = fileHandler.WriteRecord(outputFile, []string{"序列号(SN)", "验证码", "状态", "硬件信息", "软件信息", "时间"})
 
 	// 读取输入
 	snList, err := fileHandler.ReadLines(inputFile)
 	if err != nil {
 		log.Fatalf(" 无法读取 input.txt，请检查文件是否存在: %v", err)
 	}
-	fmt.Printf(">>>  任务加载完成: 共 %d 条序列号\n", len(snList))
+	fmt.Printf(">>>任务加载完成: 共 %d 条序列号\n", len(snList))
 
 	// 4. 批量执行
 	for i, sn := range snList {
@@ -54,12 +54,12 @@ func main() {
 			record = []string{sn, "N/A", "Fail", fmt.Sprintf("%v", err), timestamp}
 		} else {
 			// 只截取前100个字符显示在控制台，防止刷屏
-			displayInfo := info.RawHTML
+			displayInfo := info.HardwareHTML + " | " + info.SoftwareHTML
 			if len(displayInfo) > 100 {
 				displayInfo = displayInfo[:100] + "..."
 			}
 			fmt.Printf(" 响应: %s\n", displayInfo)
-			record = []string{sn, "OCR自动填", "Success", info.RawHTML, timestamp}
+			record = []string{sn, "OCR自动填", "Success", info.HardwareHTML, info.SoftwareHTML, timestamp}
 		}
 
 		// 写入结果
@@ -71,5 +71,5 @@ func main() {
 		time.Sleep(time.Duration(sleepMs) * time.Millisecond)
 	}
 
-	fmt.Println("\n>>> 所有任务结束！结果已保存至 results.csv")
+	fmt.Println("\n>>> 任务结束，结果保存至 results.csv")
 }

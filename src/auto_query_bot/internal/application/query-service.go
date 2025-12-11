@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 )
 
 type AutoQueryService struct {
@@ -36,16 +37,28 @@ func (s *AutoQueryService) Execute(sn string) (*domain.DeviceInfo, error) {
 		log.Println("警告: OCR 识别结果为空，可能需要优化图像处理参数")
 	}
 
-	// 3. 执行查询
-	info, err := s.deviceRepo.Find(sn, code)
+	// 3. 执行查询，先查硬件
+	hardResult, err := s.deviceRepo.FindHardware(sn, code)
 	if err != nil {
-		return nil, fmt.Errorf("查询请求失败: %w", err)
+		return nil, fmt.Errorf("硬件查询失败: %w", err)
 	}
 
-	// 简单的业务判断
-	if strings.Contains(info.RawHTML, "验证码不正确") || strings.Contains(info.RawHTML, "验证码错误") {
-		return nil, fmt.Errorf("验证码错误 (OCR读出的码: %s)", code)
+	// 验证码错误检查
+	if strings.Contains(hardResult, "验证码不正确") {
+		return nil, fmt.Errorf("验证码错误(OCR读出的码:%s)", code)
 	}
 
-	return info, nil
+	// 查软件
+	time.Sleep(500 * time.Millisecond)
+	softResult, err := s.deviceRepo.FindSoftware(sn, code)
+	if err != nil {
+		log.Println("软件查询失败: %v", err)
+		softResult = "查询失败"
+	}
+	return &domain.DeviceInfo{
+		SN:           sn,
+		HardwareHTML: hardResult,
+		SoftwareHTML: softResult,
+		Status:       "Done",
+	}, nil
 }

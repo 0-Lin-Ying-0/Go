@@ -8,5 +8,6 @@ type CaptchaRepository interface {
 
 // DeviceRepository 设备查询接口标准
 type DeviceRepository interface {
-	Find(sn string, captchaCode string) (*DeviceInfo, error)
+	FindHardware(sn string, captchaCode string) (string, error)
+	FindSoftware(sn string, captchaCode string) (string, error)
 }
